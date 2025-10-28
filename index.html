@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>动量与能量守恒原理演示 - 在线实验</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Microsoft YaHei', sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #1a2a6c, #b21f1f, #fdbb2d);
+            color: white;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+        
+        header {
+            text-align: center;
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 15px;
+            margin-bottom: 20px;
+        }
+        
+        h1 {
+            font-size: 2.2rem;
+            margin-bottom: 10px;
+        }
+        
+        .online-notice {
+            background: rgba(255, 255, 255, 0.15);
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            border-left: 4px solid #4CAF50;
+        }
+        
+        .online-notice h3 {
+            color: #4CAF50;
+            margin-bottom: 10px;
+        }
+        
+        .content {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+        
+        .simulation-area {
+            flex: 1;
+            min-width: 500px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 15px;
+            padding: 20px;
+        }
+        
+        .canvas-container {
+            width: 100%;
+            height: 350px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            overflow: hidden;
+            margin-bottom: 20px;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        canvas {
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+        
+        .controls {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .control-group {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            border-radius: 10px;
+        }
+        
+        .control-group h3 {
+            margin-bottom: 10px;
+            color: #ffcc00;
+        }
+        
+        .slider-container {
+            margin-bottom: 10px;
+        }
+        
+        .slider-container label {
+            display: block;
+            margin-bottom: 5px;
+        }
+        
+        input[type="range"] {
+            width: 100%;
+            height: 8px;
+            border-radius: 5px;
+        }
+        
+        .value-display {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.9rem;
+            margin-top: 5px;
+        }
+        
+        button {
+            background: #4a90e2;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+            width: calc(100% - 10px);
+        }
+        
+        button:hover {
+            background: #3a7bc8;
+        }
+        
+        .theory-area {
+            flex: 1;
+            min-width: 300px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 15px;
+            padding: 20px;
+        }
+        
+        .theory-section {
+            margin-bottom: 25px;
+        }
+        
+        .theory-section h2 {
+            font-size: 1.4rem;
+            margin-bottom: 15px;
+            color: #ffcc00;
+        }
+        
+        .formula {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 12px;
+            border-radius: 8px;
+            margin: 12px 0;
+            text-align: center;
+            font-size: 1.1rem;
+        }
+        
+        .data-display {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-top: 20px;
+        }
+        
+        .data-box {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 12px;
+            border-radius: 8px;
+            text-align: center;
+        }
+        
+        .data-value {
+            font-size: 1.3rem;
+            font-weight: bold;
+            color: #ffcc00;
+        }
+        
+        @media (max-width: 768px) {
+            .content {
+                flex-direction: column;
+            }
+            
+            .simulation-area, .theory-area {
+                min-width: 100%;
+            }
+            
+            .data-display {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>动量与能量守恒原理演示</h1>
+            <p>小球碰撞实验 - 在线交互式物理教学</p>
+        </header>
+        
+        <div class="online-notice">
+            <h3>🌐 在线实验平台</h3>
+            <p>此页面为在线交互式实验，支持电脑和手机访问。调整参数观察物理规律！</p>
+        </div>
+        
+        <div class="content">
+            <div class="simulation-area">
+                <div class="canvas-container">
+                    <canvas id="simulationCanvas"></canvas>
+                </div>
+                
+                <div class="controls">
+                    <div class="control-group">
+                        <h3>🔵 小球1参数</h3>
+                        <div class="slider-container">
+                            <label for="mass1">质量 (kg)</label>
+                            <input type="range" id="mass1" min="1" max="10" value="2">
+                            <div class="value-display">
+                                <span>1</span>
+                                <span id="mass1Value">2 kg</span>
+                                <span>10</span>
+                            </div>
+                        </div>
+                        <div class="slider-container">
+                            <label for="velocity1">速度 (m/s)</label>
+                            <input type="range" id="velocity1" min="0" max="10" value="5">
+                            <div class="value-display">
+                                <span>0</span>
+                                <span id="velocity1Value">5 m/s</span>
+                                <span>10</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="control-group">
+                        <h3>🔴 小球2参数</h3>
+                        <div class="slider-container">
+                            <label for="mass2">质量 (kg)</label>
+                            <input type="range" id="mass2" min="1" max="10" value="4">
+                            <div class="value-display">
+                                <span>1</span>
+                                <span id="mass2Value">4 kg</span>
+                                <span>10</span>
+                            </div>
+                        </div>
+                        <div class="slider-container">
+                            <label for="velocity2">速度 (m/s)</label>
+                            <input type="range" id="velocity2" min="-10" max="0" value="-3">
+                            <div class="value-display">
+                                <span>-10</span>
+                                <span id="velocity2Value">-3 m/s</span>
+                                <span>0</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="controls">
+                    <div class="control-group">
+                        <h3>🎯 碰撞控制</h3>
+                        <button id="elasticBtn" class="active">弹性碰撞</button>
+                        <button id="inelasticBtn">非弹性碰撞</button>
+                        <button id="resetBtn">重置实验</button>
+                    </div>
+                </div>
+                
+                <div class="data-display">
+                    <div class="data-box">
+                        <h3>总动量</h3>
+                        <div class="data-value" id="totalMomentum">0 kg·m/s</div>
+                    </div>
+                    <div class="data-box">
+                        <h3>总动能</h3>
+                        <div class="data-value" id="totalEnergy">0 J</div>
+                    </div>
+                    <div class="data-box">
+                        <h3>小球1速度</h3>
+                        <div class="data-value" id="ball1Velocity">0 m/s</div>
+                    </div>
+                    <div class="data-box">
+                        <h3>小球2速度</h3>
+                        <div class="data-value" id="ball2Velocity">0 m/s</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="theory-area">
+                <div class="theory-section">
+                    <h2>📚 动量守恒定律</h2>
+                    <p>在一个封闭系统中，如果没有外力作用，系统的总动量保持不变。</p>
+                    <div class="formula">
+                        m₁v₁ + m₂v₂ = m₁v₁' + m₂v₂'
+                    </div>
+                    <p><strong>物理意义：</strong>碰撞前后系统的总动量相等。</p>
+                </div>
+                
+                <div class="theory-section">
+                    <h2>⚡ 能量守恒定律</h2>
+                    <p>能量不会凭空产生或消失，只会从一种形式转化为另一种形式。</p>
+                    <div class="formula">
+                        ½m₁v₁² + ½m₂v₂² = ½m₁v₁'² + ½m₂v₂'² + Q
+                    </div>
+                    <p>Q为转化为其他形式的能量（如热能、声能等）。</p>
+                </div>
+                
+                <div class="theory-section">
+                    <h2>🔬 碰撞类型</h2>
+                    <p><strong>弹性碰撞：</strong></p>
+                    <ul style="margin-left: 20px; margin-bottom: 15px;">
+                        <li>动量守恒</li>
+                        <li>动能守恒</li>
+                        <li>碰撞后物体分离</li>
+                    </ul>
+                    <p><strong>非弹性碰撞：</strong></p>
+                    <ul style="margin-left: 20px;">
+                        <li>动量守恒</li>
+                        <li>动能不守恒</li>
+                        <li>部分动能转化为内能</li>
+                    </ul>
+                </div>
+                
+                <div class="theory-section">
+                    <h2>🎯 实验指导</h2>
+                    <p>1. 调整小球质量和速度参数</p>
+                    <p>2. 选择不同碰撞类型观察效果</p>
+                    <p>3. 记录和分析实验数据</p>
+                    <p>4. 验证物理守恒定律</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 获取Canvas和上下文
+        const canvas = document.getElementById('simulationCanvas');
+        const ctx = canvas.getContext('2d');
+        
+        // 设置Canvas尺寸
+        function resizeCanvas() {
+            canvas.width = canvas.parentElement.clientWidth;
+            canvas.height = canvas.parentElement.clientHeight;
+        }
+        
+        // 小球类
+        class Ball {
+            constructor(x, y, radius, mass, velocity, color) {
+                this.x = x;
+                this.y = y;
+                this.radius = radius;
+                this.mass = mass;
+                this.velocity = velocity;
+                this.color = color;
+                this.originalColor = color;
+            }
+            
+            draw() {
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                ctx.fillStyle = this.color;
+                ctx.fill();
+                ctx.strokeStyle = 'white';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+                
+                // 绘制速度箭头
+                if (Math.abs(this.velocity) > 0.1) {
+                    const arrowLength = Math.abs(this.velocity) * 5;
+                    const direction = this.velocity > 0 ? 1 : -1;
+                    
+                    ctx.beginPath();
+                    ctx.moveTo(this.x, this.y);
+                    ctx.lineTo(this.x + direction * arrowLength, this.y);
+                    ctx.strokeStyle = 'white';
+                    ctx.lineWidth = 2;
+                    ctx.stroke();
+                    
+                    // 箭头头部
+                    ctx.beginPath();
+                    ctx.moveTo(this.x + direction * arrowLength, this.y);
+                    ctx.lineTo(this.x + direction * (arrowLength - 6), this.y - 3);
+                    ctx.lineTo(this.x + direction * (arrowLength - 6), this.y + 3);
+                    ctx.closePath();
+                    ctx.fillStyle = 'white';
+                    ctx.fill();
+                }
+            }
+            
+            update() {
+                this.x += this.velocity;
+            }
+            
+            // 碰撞闪烁效果
+            flash() {
+                this.color = '#ffffff';
+                setTimeout(() => {
+                    this.color = this.originalColor;
+                }, 100);
+            }
+        }
+        
+        // 初始化变量
+        let ball1, ball2;
+        let isElastic = true;
+        
+        function initBalls() {
+            const mass1 = parseFloat(document.getElementById('mass1').value);
+            const mass2 = parseFloat(document.getElementById('mass2').value);
+            const velocity1 = parseFloat(document.getElementById('velocity1').value);
+            const velocity2 = parseFloat(document.getElementById('velocity2').value);
+            
+            const centerY = canvas.height / 2;
+            const radius1 = 15 + mass1 * 1.5;
+            const radius2 = 15 + mass2 * 1.5;
+            
+            ball1 = new Ball(canvas.width * 0.3, centerY, radius1, mass1, velocity1, '#4a90e2');
+            ball2 = new Ball(canvas.width * 0.7, centerY, radius2, mass2, velocity2, '#e74c3c');
+        }
+        
+        // 检测碰撞
+        function checkCollision() {
+            const distance = Math.abs(ball1.x - ball2.x);
+            const minDistance = ball1.radius + ball2.radius;
+            
+            if (distance <= minDistance) {
+                // 碰撞闪烁效果
+                ball1.flash();
+                ball2.flash();
+                
+                // 计算碰撞后的速度
+                if (isElastic) {
+                    // 弹性碰撞公式
+                    const v1 = ((ball1.mass - ball2.mass) * ball1.velocity + 2 * ball2.mass * ball2.velocity) / (ball1.mass + ball2.mass);
+                    const v2 = ((ball2.mass - ball1.mass) * ball2.velocity + 2 * ball1.mass * ball1.velocity) / (ball1.mass + ball2.mass);
+                    
+                    ball1.velocity = v1;
+                    ball2.velocity = v2;
+                } else {
+                    // 非弹性碰撞公式
+                    const totalMomentum = ball1.mass * ball1.velocity + ball2.mass * ball2.velocity;
+                    const totalMass = ball1.mass + ball2.mass;
+                    const commonVelocity = totalMomentum / totalMass;
+                    
+                    // 损失15%的动能
+                    ball1.velocity = commonVelocity * 0.85;
+                    ball2.velocity = commonVelocity * 0.85;
+                }
+                
+                // 防止小球重叠
+                if (ball1.x < ball2.x) {
+                    ball1.x = ball2.x - minDistance - 1;
+                } else {
+                    ball2.x = ball1.x - minDistance - 1;
+                }
+            }
+        }
+        
+        // 检查边界
+        function checkBoundaries() {
+            // 小球1边界检查
+            if (ball1.x - ball1.radius < 0) {
+                ball1.x = ball1.radius;
+                ball1.velocity = Math.abs(ball1.velocity) * 0.9;
+            } else if (ball1.x + ball1.radius > canvas.width) {
+                ball1.x = canvas.width - ball1.radius;
+                ball1.velocity = -Math.abs(ball1.velocity) * 0.9;
+            }
+            
+            // 小球2边界检查
+            if (ball2.x - ball2.radius < 0) {
+                ball2.x = ball2.radius;
+                ball2.velocity = Math.abs(ball2.velocity) * 0.9;
+            } else if (ball2.x + ball2.radius > canvas.width) {
+                ball2.x = canvas.width - ball2.radius;
+                ball2.velocity = -Math.abs(ball2.velocity) * 0.9;
+            }
+        }
+        
+        // 更新数据显示
+        function updateDataDisplay() {
+            const momentum1 = ball1.mass * ball1.velocity;
+            const momentum2 = ball2.mass * ball2.velocity;
+            const totalMomentum = momentum1 + momentum2;
+            
+            const energy1 = 0.5 * ball1.mass * ball1.velocity * ball1.velocity;
+            const energy2 = 0.5 * ball2.mass * ball2.velocity * ball2.velocity;
+            const totalEnergy = energy1 + energy2;
+            
+            document.getElementById('totalMomentum').textContent = totalMomentum.toFixed(2) + ' kg·m/s';
+            document.getElementById('totalEnergy').textContent = totalEnergy.toFixed(2) + ' J';
+            document.getElementById('ball1Velocity').textContent = ball1.velocity.toFixed(2) + ' m/s';
+            document.getElementById('ball2Velocity').textContent = ball2.velocity.toFixed(2) + ' m/s';
+        }
+        
+        // 动画循环
+        function animate() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // 绘制中心线
+            ctx.beginPath();
+            ctx.moveTo(0, canvas.height / 2);
+            ctx.lineTo(canvas.width, canvas.height / 2);
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
+            ctx.lineWidth = 1;
+            ctx.stroke();
+            
+            // 更新和绘制小球
+            ball1.update();
+            ball2.update();
+            
+            checkCollision();
+            checkBoundaries();
+            
+            ball1.draw();
+            ball2.draw();
+            
+            updateDataDisplay();
+            
+            requestAnimationFrame(animate);
+        }
+        
+        // 初始化
+        function init() {
+            resizeCanvas();
+            initBalls();
+            animate();
+        }
+        
+        // 事件监听
+        document.getElementById('mass1').addEventListener('input', function() {
+            document.getElementById('mass1Value').textContent = this.value + ' kg';
+            initBalls();
+        });
+        
+        document.getElementById('mass2').addEventListener('input', function() {
+            document.getElementById('mass2Value').textContent = this.value + ' kg';
+            initBalls();
+        });
+        
+        document.getElementById('velocity1').addEventListener('input', function() {
+            document.getElementById('velocity1Value').textContent = this.value + ' m/s';
+            initBalls();
+        });
+        
+        document.getElementById('velocity2').addEventListener('input', function() {
+            document.getElementById('velocity2Value').textContent = this.value + ' m/s';
+            initBalls();
+        });
+        
+        document.getElementById('elasticBtn').addEventListener('click', function() {
+            isElastic = true;
+            document.getElementById('elasticBtn').classList.add('active');
+            document.getElementById('inelasticBtn').classList.remove('active');
+            initBalls();
+        });
+        
+        document.getElementById('inelasticBtn').addEventListener('click', function() {
+            isElastic = false;
+            document.getElementById('inelasticBtn').classList.add('active');
+            document.getElementById('elasticBtn').classList.remove('active');
+            initBalls();
+        });
+        
+        document.getElementById('resetBtn').addEventListener('click', init);
+        
+        // 窗口大小改变时重新调整
+        window.addEventListener('resize', init);
+        
+        // 启动模拟
+        init();
+    </script>
+</body>
+</html>
